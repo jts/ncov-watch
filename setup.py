@@ -19,6 +19,7 @@ setuptools.setup(
     zip_safe=False,
     package_data={'ncov_watch': ['watchlists/*']},
     include_package_data=True,
+    python_requires=">=3.4",
     url='https://github.com/jts/ncov-watch',
     download_url='https://github.com/jts/ncov-watch/archive/master.zip',
     classifiers=[
