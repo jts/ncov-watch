@@ -1,14 +1,15 @@
-from setuptools import setup
+import setuptools
 
 requirements = ['pysam']
 
 with open('README.md') as rm:
     long_description = rm.read()
 
-setup(
+setuptools.setup(
     name="ncov-watch",
-    packages=["ncov_watch"],
+    packages=setuptools.find_packages(include=["ncov_watch"]),
     version='0.0.1',
+    python_requires=">=3.4",
     description='Tools for detecting mutations of interest in SARS-CoV-2 sequencing results',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -20,7 +21,6 @@ setup(
     include_package_data=True,
     url='https://github.com/jts/ncov-watch',
     download_url='https://github.com/jts/ncov-watch/archive/master.zip',
-
     classifiers=[
         'Development Status :: 3 - Beta',
 
