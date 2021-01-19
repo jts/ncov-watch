@@ -5,6 +5,7 @@ import pysam
 import sys
 import csv
 import os
+import pkg_resources
 from pathlib import Path
 
 class Variant:
@@ -14,7 +15,6 @@ class Variant:
         self.reference = reference
         self.alt = alt
         self.name = None
-
     def key(self):
         return ",".join([str(x) for x in [self.contig, self.position, self.reference, self.alt]])
 
@@ -26,12 +26,12 @@ def load_vcf(filename):
             sys.stderr.write("Multi-allelic VCF not supported\n")
             sys.exit(1)
 
-        
+
         v = Variant(record.chrom, record.pos, record.ref, record.alts[0])
         if "Name" in record.info:
             v.name = record.info["Name"]
         variants.append(v)
-        
+
     return variants
 
 def load_ivar_variants(filename):
@@ -67,11 +67,23 @@ def main():
 
     description = 'Report samples containing a variant in the watchlist'
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('-w', '--watchlist', help='file containing the variants to screen for')
+
+    mutation_sets = list(Path('watchlists').glob('*.vcf'))
+    mutation_sets = [mutation_set.stem for mutation_set in mutation_sets]
+    parser.add_argument('-m', '--mutation_set', required=True,
+                        choices=mutation_sets,
+                        help='Mutation set to screen variants against')
+
     parser.add_argument('-d', '--directory', help='root of directories holding variant files')
     args = parser.parse_args()
 
-    watch_variants = load_vcf(args.watchlist)
+    mutation_set_path = Path("watchlists") / Path(args.mutation_set + ".vcf")
+    mutation_set = pkg_resources.resource_filename(__name__, str(mutation_set_path))
+
+
+    print(mutation_set)
+
+    watch_variants = load_vcf(mutation_set)
     watch_dict = dict()
     for v in watch_variants:
         watch_dict[v.key()] = v.name
