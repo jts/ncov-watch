@@ -2,12 +2,15 @@ from setuptools import setup
 
 requirements = ['pysam']
 
+with open('README.md') as rm:
+    long_description = rm.read()
+
 setup(
     name="ncov-watch",
     packages=["ncov_watch"],
     version='0.0.1',
     description='Tools for detecting mutations of interest in SARS-CoV-2 sequencing results',
-    long_description="""Tools for detecting mutations of interest in SARS-CoV-2 sequencing results""",
+    long_description=long_description,
     long_description_content_type='text/markdown',
     install_requires=requirements,
     author='Jared Simpson',
