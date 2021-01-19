@@ -68,8 +68,8 @@ def main():
     description = 'Report samples containing a variant in the watchlist'
     parser = argparse.ArgumentParser(description=description)
 
-    mutation_sets = list(Path('watchlists').glob('*.vcf'))
-    mutation_sets = [mutation_set.stem for mutation_set in mutation_sets]
+    mutation_sets = pkg_resources.resource_listdir(__name__, 'watchlists')
+    mutation_sets = [Path(mutation_set).stem for mutation_set in mutation_sets]
     parser.add_argument('-m', '--mutation_set', required=True,
                         choices=mutation_sets,
                         help='Mutation set to screen variants against')
@@ -79,9 +79,6 @@ def main():
 
     mutation_set_path = Path("watchlists") / Path(args.mutation_set + ".vcf")
     mutation_set = pkg_resources.resource_filename(__name__, str(mutation_set_path))
-
-
-    print(mutation_set)
 
     watch_variants = load_vcf(mutation_set)
     watch_dict = dict()
