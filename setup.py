@@ -9,7 +9,6 @@ setuptools.setup(
     name="ncov-watch",
     packages=setuptools.find_packages(include=["ncov_watch"]),
     version='0.0.1',
-    python_requires=">=3.4",
     description='Tools for detecting mutations of interest in SARS-CoV-2 sequencing results',
     long_description=long_description,
     long_description_content_type='text/markdown',
