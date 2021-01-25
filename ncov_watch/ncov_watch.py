@@ -53,8 +53,8 @@ def load_ivar_variants(filename):
         pass
     return variants
 
-def get_from_directory():
-    find_files = lambda pattern : [ path for path in Path(args.directory).rglob(pattern) ]
+def get_from_directory(directory):
+    find_files = lambda pattern : [ path for path in Path(directory).rglob(pattern) ]
     files = find_files("*pass.vcf") + find_files("*pass.vcf.gz") + find_files("*variants.tsv")
     for f in files:
         yield str(f)
@@ -68,29 +68,44 @@ def main():
     description = 'Report samples containing a variant in the watchlist'
     parser = argparse.ArgumentParser(description=description)
 
+    # get preinstalled mutation sets
     mutation_sets = pkg_resources.resource_listdir(__name__, 'watchlists')
     mutation_sets = [Path(mutation_set).stem for mutation_set in mutation_sets]
-    parser.add_argument('-m', '--mutation_set', required=True,
-                        choices=mutation_sets,
-                        help='Mutation set to screen variants against')
 
+    parser.add_argument('-m', '--mutation_set', required=True,
+            help=f"Either one of the preinstalled mutation sets: {mutation_sets}\n"
+                  "or a full path to a VCF file containing mutations")
     parser.add_argument('-d', '--directory', help='root of directories holding variant files')
     args = parser.parse_args()
 
-    mutation_set_path = Path("watchlists") / Path(args.mutation_set + ".vcf")
-    mutation_set = pkg_resources.resource_filename(__name__, str(mutation_set_path))
+    # if the argument provided is in the preinstalled mutation sets use
+    # as appropriate
+    if args.mutation_set in mutation_sets:
+        mutation_set_path = Path("watchlists") / Path(args.mutation_set + ".vcf")
+        mutation_set = pkg_resources.resource_filename(__name__, str(mutation_set_path))
+    else:
+        # otherwise check if the mutation vcf exists
+        mutation_set_path = Path(args.mutation_set)
+        if mutation_set_path.is_file():
+            mutation_set = args.mutation_set
+        else:
+            # if it doesn't exist then print error, help, and exit with non-zero
+            print("Provided mutation set: {mutation_set_path} does not exist",
+                  file=sys.stderr)
+            parser.print_help()
+            sys.exit(1)
 
     watch_variants = load_vcf(mutation_set)
     watch_dict = dict()
     for v in watch_variants:
         watch_dict[v.key()] = v.name
 
-    gen_func = get_from_stdin
+    input_files = get_from_stdin()
     if args.directory:
-        gen_func = get_from_directory
+        input_files = get_from_directory(args.directory)
 
     print("\t".join(["sample", "mutation", "contig", "position", "reference", "alt"]))
-    for f in gen_func():
+    for f in input_files:
         if f.find("variants.tsv") >= 0:
             variants = load_ivar_variants(f)
         else:
