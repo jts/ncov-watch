@@ -14,10 +14,33 @@ class Variant:
         self.position = position
         self.reference = reference
         self.alt = alt
-        self.name = None
+        self.name = "unnamed"
+
     def key(self):
         return ",".join([str(x) for x in [self.contig, self.position, self.reference, self.alt]])
 
+class SummaryOutput:
+    def write_header():
+        print("sample\tmutations")
+
+    def write_variants(sample_name, variants):
+        out = list()
+        for v in variants:
+            sample_variant = v[0]
+            watch_variant = v[1]
+            out.append(watch_variant.name)
+        print("\t".join([sample_name, ",".join(out)]))
+
+class MutationOutput:
+    def write_header():
+        print("\t".join(["sample", "mutation", "contig", "position", "reference", "alt"]))
+
+    def write_variants(sample_name, variants):
+        for v in variants:
+            sample_variant = v[0]
+            watch_variant = v[1]
+            print("\t".join([sample_name, watch_variant.name, sample_variant.contig, str(sample_variant.position), sample_variant.reference, sample_variant.alt]))
+ 
 def load_vcf(filename):
     variants = list()
     f = pysam.VariantFile(filename,'r')
@@ -76,6 +99,7 @@ def main():
             help=f"Either one of the preinstalled mutation sets: {mutation_sets}\n"
                   "or a full path to a VCF file containing mutations")
     parser.add_argument('-d', '--directory', help='root of directories holding variant files')
+    parser.add_argument('-s', '--output-style', help='style of output either mutation (default) or summary', default="mutation")
     args = parser.parse_args()
 
     # if the argument provided is in the preinstalled mutation sets use
@@ -98,24 +122,35 @@ def main():
     watch_variants = load_vcf(mutation_set)
     watch_dict = dict()
     for v in watch_variants:
-        watch_dict[v.key()] = v.name
+        watch_dict[v.key()] = v
 
     input_files = get_from_stdin()
     if args.directory:
         input_files = get_from_directory(args.directory)
 
-    print("\t".join(["sample", "mutation", "contig", "position", "reference", "alt"]))
+    if args.output_style == "summary":
+        output = SummaryOutput
+    elif args.output_style == "mutation":
+        output = MutationOutput
+    else:
+        sys.stderr.write("Unknown output style: %s" % (args.output_style))
+        sys.exit(1)
+
+    output.write_header()
+
     for f in input_files:
         if f.find("variants.tsv") >= 0:
             variants = load_ivar_variants(f)
         else:
             variants = load_vcf(f)
+        
+        matches = list()
         for v in variants:
             if v.key() in watch_dict:
-                name = watch_dict[v.key()]
-                if name is None:
-                    name = "not annotated"
-                print("\t".join([os.path.basename(f), name, v.contig, str(v.position), v.reference, v.alt]))
+                matches.append( (v, watch_dict[v.key()]) )
+        
+        if len(matches) > 0:
+            output.write_variants(os.path.basename(f), matches)
 
 if __name__ == "__main__":
     main()
