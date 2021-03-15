@@ -45,14 +45,10 @@ def load_vcf(filename):
     variants = list()
     f = pysam.VariantFile(filename,'r')
     for record in f:
-        if len(record.alts) > 1:
-            sys.stderr.write("Multi-allelic VCF not supported\n")
-            sys.exit(1)
-
-
-        v = Variant(record.chrom, record.pos, record.ref, record.alts[0])
-        if "Name" in record.info:
-            v.name = record.info["Name"]
+        for a in record.alts:
+            v = Variant(record.chrom, record.pos, record.ref, a)
+            if "Name" in record.info:
+                v.name = record.info["Name"]
         variants.append(v)
 
     return variants
