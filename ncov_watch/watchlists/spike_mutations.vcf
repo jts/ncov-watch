@@ -10,6 +10,7 @@ MN908947.3	22299	.	G	T	.	.	Name=S:R246I
 MN908947.3	22813	.	G	T	.	.	Name=S:K417N
 MN908947.3	22917	.	T	G	.	.	Name=S:L452R
 MN908947.3	23012	.	G	A	.	.	Name=S:E484K
+MN908947.3      23012   .       G       C       .       .       Name=S:E484Q
 MN908947.3	23063	.	A	T	.	.	Name=S:N501Y
 MN908947.3	23271	.	C	A	.	.	Name=S:A570D
 MN908947.3	23604	.	C	A	.	.	Name=S:P681H
